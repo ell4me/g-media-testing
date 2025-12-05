@@ -1,0 +1,39 @@
+services:
+  task-app:
+    build: .
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      MONGO_DB_NAME: task_db
+      RABBITMQ_URL: amqp://rabbitmq:5672
+      PORT: 4000
+    depends_on:
+      - mongodb
+      - rabbitmq
+    ports:
+      - '4000:4000'
+    volumes:
+      - '.:/app'
+      - '/app/node_modules'
+
+  mongodb:
+    image: mongo:7
+    container_name: task-mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: task_db
+    ports:
+      - '27017:27017'
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: task-rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: test
+      RABBITMQ_DEFAULT_PASS: test
