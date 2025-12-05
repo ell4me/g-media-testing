@@ -9,10 +9,10 @@ import { SanitizedObject, sanitizeObjectDeep } from './common/utils/sanitize';
 import { MongoDbClient } from './db/mongo.client';
 import { buildContext, GraphQLContext } from './graphql/context';
 import { buildSchema } from './graphql/schema';
-import { taskController } from './modules/task/task.controller';
+import { taskController } from './modules/task/api/task.controller';
+import { TaskService } from './modules/task/application/task.service';
+import { TaskRepository } from './modules/task/infrastructure/task.repository';
 import { TaskBase } from './modules/task/task.model';
-import { TaskRepository } from './modules/task/task.repository';
-import { TaskService } from './modules/task/task.service';
 
 export interface AppDeps {
   mongoClient: MongoDbClient;

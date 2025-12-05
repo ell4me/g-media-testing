@@ -1,6 +1,6 @@
 import { TaskDocument, TaskViewDto } from '../../modules/task/task.model';
 
-export const transformTaskToViewDto = ({
+export const mapTaskToViewDto = ({
   _id,
   dueDate,
   description,
@@ -9,7 +9,7 @@ export const transformTaskToViewDto = ({
 }: TaskDocument): TaskViewDto => ({
   id: _id.toString(),
   status,
-  dueDate,
+  dueDate: dueDate.toISOString(),
   description,
   title,
 });

@@ -1,19 +1,23 @@
 import { WithId } from 'mongodb';
 
-export interface TaskParams {
+export interface TaskParamId {
   id: string;
 }
 
+export interface TaskParamStatus {
+  status?: TaskStatus;
+}
+
 export enum TaskStatus {
-  OPEN = 'open',
-  IN_PROGRESS = 'in_progress',
-  CLOSED = 'closed',
-  EXPIRED = 'expired',
+  InProgress = 'IN_PROGRESS',
+  Open = 'OPEN',
+  Closed = 'CLOSED',
+  Expired = 'EXPIRED',
 }
 
 export interface TaskBase {
   title: string;
-  description?: string;
+  description?: string | null;
   dueDate: Date;
   status: TaskStatus;
   createdAt: Date;
@@ -25,20 +29,20 @@ export type TaskDocument = WithId<TaskBase>;
 export interface TaskViewDto {
   id: string;
   title: string;
-  description?: string;
-  dueDate: Date;
+  description?: string | null;
+  dueDate: string;
   status: TaskStatus;
 }
 
 export interface CreateTaskDto {
   title: string;
-  description?: string;
+  description?: string | null;
   dueDate: string;
-  status?: TaskStatus;
+  status?: TaskStatus | null;
 }
 
 export interface UpdateTaskDto {
-  title?: string;
-  description?: string;
-  status?: TaskStatus;
+  title?: string | null;
+  description?: string | null;
+  status?: TaskStatus | null;
 }

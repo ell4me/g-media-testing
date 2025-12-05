@@ -1,14 +1,19 @@
-import { Collection, ObjectId } from 'mongodb';
+import { Collection, Filter, ObjectId } from 'mongodb';
 
-import { AppError, HTTP_STATUS_CODES } from '../../common/errors';
-
-import { CreateTaskDto, TaskBase, TaskDocument, TaskStatus, UpdateTaskDto } from './task.model';
+import { AppError, HTTP_STATUS_CODES } from '../../../common/errors';
+import { CreateTaskDto, TaskBase, TaskDocument, TaskStatus, UpdateTaskDto } from '../task.model';
 
 export class TaskRepository {
   constructor(private readonly collectionTasks: Collection<TaskBase>) {}
 
-  public async getTasks(): Promise<TaskDocument[]> {
-    return this.collectionTasks.find().toArray();
+  public async getTasks(status?: TaskStatus | null): Promise<TaskDocument[]> {
+    const filter: Filter<TaskDocument> = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    return this.collectionTasks.find(filter).toArray();
   }
 
   public async getTaskById(id: string): Promise<TaskDocument | null> {
@@ -27,7 +32,7 @@ export class TaskRepository {
   }: CreateTaskDto): Promise<TaskDocument> {
     const now = new Date();
     const doc: Omit<TaskDocument, '_id'> = {
-      status: status ?? TaskStatus.OPEN,
+      status: status ?? TaskStatus.Open,
       title,
       dueDate: new Date(dueDate),
       description,
@@ -43,6 +48,9 @@ export class TaskRepository {
   }
 
   public async updateTask(updateTaskDto: UpdateTaskDto, taskId: string): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    // TODO: разобраться с типами
     await this.collectionTasks.updateOne({ _id: new ObjectId(taskId) }, { $set: updateTaskDto });
     return true;
   }

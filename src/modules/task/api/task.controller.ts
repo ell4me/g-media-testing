@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 
-import { AppError, HTTP_STATUS_CODES } from '../../common/errors';
-import { ROUTES } from '../../routes';
+import { AppError, HTTP_STATUS_CODES } from '../../../common/errors';
+import { ROUTES } from '../../../routes';
+import { TaskService } from '../application/task.service';
+import { CreateTaskDto, TaskParamId, TaskParamStatus, UpdateTaskDto } from '../task.model';
 
-import { CreateTaskDto, TaskParams, UpdateTaskDto } from './task.model';
-import { TaskService } from './task.service';
 import {
   createTaskSchema,
   getTaskByIdResponseSchema,
@@ -22,15 +22,19 @@ export const taskController = async (
 ) => {
   const { taskService } = opts;
 
-  fastify.get(ROUTES.TASKS, { schema: getTasksResponseSchema }, async (_request, reply) => {
-    const tasks = await taskService.getTasks();
-    return reply.send(tasks);
-  });
+  fastify.get(
+    ROUTES.TASKS,
+    { schema: getTasksResponseSchema },
+    async (request: FastifyRequest<{ Querystring: TaskParamStatus }>, reply) => {
+      const tasks = await taskService.getTasks(request.query.status);
+      return reply.send(tasks);
+    },
+  );
 
   fastify.get(
     `${ROUTES.TASKS}/:id`,
     { schema: getTaskByIdResponseSchema },
-    async (request: FastifyRequest<{ Params: TaskParams }>, reply) => {
+    async (request: FastifyRequest<{ Params: TaskParamId }>, reply) => {
       const task = await taskService.getTaskById(request.params.id);
 
       if (!task) {
@@ -53,7 +57,7 @@ export const taskController = async (
   fastify.patch(
     `${ROUTES.TASKS}/:id`,
     { schema: updateTaskSchema },
-    async (request: FastifyRequest<{ Params: TaskParams; Body: UpdateTaskDto }>, reply) => {
+    async (request: FastifyRequest<{ Params: TaskParamId; Body: UpdateTaskDto }>, reply) => {
       const task = await taskService.updateTask(request.body, request.params.id);
 
       if (!task) {

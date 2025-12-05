@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 
-import { TaskService } from '../modules/task/task.service';
+import { TaskService } from '../modules/task/application/task.service';
 
 export interface GraphQLContext {
   request: FastifyRequest;

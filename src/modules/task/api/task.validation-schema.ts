@@ -1,8 +1,7 @@
 import { FastifySchema } from 'fastify';
 
-import { HTTP_STATUS_CODES } from '../../common/errors';
-
-import { TaskStatus } from './task.model';
+import { HTTP_STATUS_CODES } from '../../../common/errors';
+import { TaskStatus } from '../task.model';
 
 const taskStatusEnum = Object.values(TaskStatus);
 
@@ -43,6 +42,12 @@ export const taskParamsSchema: FastifySchema = {
 };
 
 export const getTasksResponseSchema: FastifySchema = {
+  querystring: {
+    type: 'object',
+    properties: {
+      status: { type: 'string', enum: taskStatusEnum },
+    },
+  },
   response: {
     [HTTP_STATUS_CODES.OK]: {
       type: 'array',
