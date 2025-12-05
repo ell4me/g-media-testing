@@ -1,14 +1,17 @@
-import { ObjectId } from 'mongodb';
+import { WithId } from 'mongodb';
 
-enum TaskStatus {
+export interface TaskParams {
+  id: string;
+}
+
+export enum TaskStatus {
   OPEN = 'open',
   IN_PROGRESS = 'in_progress',
   CLOSED = 'closed',
   EXPIRED = 'expired',
 }
 
-export interface TaskDocument {
-  _id: ObjectId;
+export interface TaskBase {
   title: string;
   description?: string;
   dueDate: Date;
@@ -16,6 +19,8 @@ export interface TaskDocument {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type TaskDocument = WithId<TaskBase>;
 
 export interface TaskViewDto {
   id: string;
