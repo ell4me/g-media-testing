@@ -1,6 +1,7 @@
+import { transformTaskToViewDto } from '../../common/utils/transformTaskToViewDto';
+
 import { CreateTaskDto, TaskViewDto, UpdateTaskDto } from './task.model';
 import { TaskRepository } from './task.repository';
-import { transformTaskToViewDto } from '../../common/utils/transformTaskToViewDto';
 
 export class TaskService {
   constructor(private readonly taskRepository: TaskRepository) {}

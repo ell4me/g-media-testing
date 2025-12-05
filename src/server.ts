@@ -1,5 +1,5 @@
-import { envConfig } from './config/env';
 import { buildApp } from './app';
+import { envConfig } from './config/env';
 
 (async () => {
   const app = await buildApp();

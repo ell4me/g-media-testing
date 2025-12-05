@@ -1,7 +1,8 @@
-import { makeExecutableSchema } from '@graphql-tools/schema';
-import { GraphQLSchema } from 'graphql';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { GraphQLSchema } from 'graphql';
 
 import { taskResolvers } from '../modules/task/task.resolvers';
 

@@ -1,9 +1,10 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 
-import { TaskService } from './task.service';
-import { ROUTES } from '../../routes';
-import { CreateTaskDto, TaskParams, UpdateTaskDto } from './task.model';
 import { AppError, HTTP_STATUS_CODES } from '../../common/errors';
+import { ROUTES } from '../../routes';
+
+import { CreateTaskDto, TaskParams, UpdateTaskDto } from './task.model';
+import { TaskService } from './task.service';
 import {
   createTaskSchema,
   getTaskByIdResponseSchema,

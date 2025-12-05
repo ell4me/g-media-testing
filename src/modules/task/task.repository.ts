@@ -1,6 +1,8 @@
 import { Collection, ObjectId } from 'mongodb';
-import { CreateTaskDto, TaskBase, TaskDocument, TaskStatus, UpdateTaskDto } from './task.model';
+
 import { AppError, HTTP_STATUS_CODES } from '../../common/errors';
+
+import { CreateTaskDto, TaskBase, TaskDocument, TaskStatus, UpdateTaskDto } from './task.model';
 
 export class TaskRepository {
   constructor(private readonly collectionTasks: Collection<TaskBase>) {}

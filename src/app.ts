@@ -1,18 +1,18 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import { ApolloServer } from '@apollo/server';
+import { fastifyApolloHandler } from '@as-integrations/fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
-import { fastifyApolloHandler } from '@as-integrations/fastify';
-import { ApolloServer } from '@apollo/server';
+import Fastify, { FastifyInstance } from 'fastify';
 
+import { HTTP_STATUS_CODES } from './common/errors';
+import { SanitizedObject, sanitizeObjectDeep } from './common/utils/sanitize';
 import { MongoDbClient } from './db/mongo.client';
-import { buildSchema } from './graphql/schema';
 import { buildContext, GraphQLContext } from './graphql/context';
-import { TaskService } from './modules/task/task.service';
+import { buildSchema } from './graphql/schema';
 import { taskController } from './modules/task/task.controller';
 import { TaskBase } from './modules/task/task.model';
 import { TaskRepository } from './modules/task/task.repository';
-import { HTTP_STATUS_CODES } from './common/errors';
-import { SanitizedObject, sanitizeObjectDeep } from './common/utils/sanitize';
+import { TaskService } from './modules/task/task.service';
 
 export interface AppDeps {
   mongoClient: MongoDbClient;

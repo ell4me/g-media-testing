@@ -1,5 +1,7 @@
 import { FastifySchema } from 'fastify';
+
 import { HTTP_STATUS_CODES } from '../../common/errors';
+
 import { TaskStatus } from './task.model';
 
 const taskStatusEnum = Object.values(TaskStatus);
