@@ -50,3 +50,9 @@ export type UpdateTaskBase = Partial<{
 }>;
 
 export type UpdateTaskDto = Nullable<UpdateTaskBase>;
+
+export interface MessageTask {
+  taskId: string;
+  action: 'created' | 'updated';
+  timestamp: string;
+}

@@ -20,11 +20,18 @@ export const taskResolvers: Resolvers = {
     },
   },
   Mutation: {
-    createTask: (_parent, args, context): Promise<TaskViewDto> => {
+    createTask: async (_parent, args, context): Promise<TaskViewDto> => {
       validateTaskInput(args.createTaskInput?.title, args.createTaskInput?.description);
       const input = sanitizeObjectDeep(args.createTaskInput!);
 
-      return context.services.taskService.createTask(input);
+      const task = await context.services.taskService.createTask(input);
+      await context.services.rmqClient.publish('task.action', {
+        taskId: task.id,
+        action: 'created',
+        timestamp: new Date().toISOString(),
+      });
+
+      return task;
     },
     updateTask: async (_parent, args, context) => {
       validateTaskInput(args.updateTaskInput?.title, args.updateTaskInput?.description);
@@ -38,6 +45,12 @@ export const taskResolvers: Resolvers = {
       if (!task) {
         throw new GqlError('Task not found', HTTP_STATUS_CODES.NOT_FOUND);
       }
+
+      await context.services.rmqClient.publish('task.action', {
+        taskId,
+        action: 'updated',
+        timestamp: new Date().toISOString(),
+      });
 
       return taskService.getTaskById(taskId);
     },

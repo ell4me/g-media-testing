@@ -4,11 +4,13 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import Fastify, { FastifyInstance } from 'fastify';
 
+import { MongoDbClient } from './common/db/mongo.client';
 import { HTTP_STATUS_CODES } from './common/errors';
+import { RabbitMqClient } from './common/rmq/rabbitmq.client';
 import { SanitizedObject, sanitizeObjectDeep } from './common/utils/sanitize';
-import { MongoDbClient } from './db/mongo.client';
 import { buildContext, GraphQLContext } from './graphql/context';
 import { buildSchema } from './graphql/schema';
+import { TaskConsumer } from './modules/task/api/task.consumer';
 import { taskController } from './modules/task/api/task.controller';
 import { TaskService } from './modules/task/application/task.service';
 import { TaskRepository } from './modules/task/infrastructure/task.repository';
@@ -16,6 +18,7 @@ import { TaskBase } from './modules/task/task.model';
 
 export interface AppDeps {
   mongoClient: MongoDbClient;
+  rmqClient: RabbitMqClient;
   taskService: TaskService;
 }
 
@@ -57,7 +60,10 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   });
 
   const mongoClient = MongoDbClient.getInstance();
+  const rmqClient = RabbitMqClient.getInstance(fastify.log);
+
   await mongoClient.connect();
+  await rmqClient.connect();
 
   const taskRepository = new TaskRepository(mongoClient.getCollection<TaskBase>('task'));
   const taskService = new TaskService(taskRepository);
@@ -65,11 +71,16 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   const deps: AppDeps = {
     mongoClient,
     taskService,
+    rmqClient,
   };
+
+  const taskConsumer = new TaskConsumer(deps.rmqClient, fastify.log);
+  await taskConsumer.start();
 
   await fastify.register(taskController, {
     prefix: '/api',
     taskService: deps.taskService,
+    rmqClient: deps.rmqClient,
   });
 
   const schema = buildSchema();
@@ -86,6 +97,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
       context: async (request, reply) =>
         buildContext(request, reply, {
           taskService: deps.taskService,
+          rmqClient: deps.rmqClient,
         }),
     }),
   });

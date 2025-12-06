@@ -1,6 +1,6 @@
 import { MongoClient, Db, Collection, Document } from 'mongodb';
 
-import { envConfig } from '../config/env';
+import { envConfig } from '../../config/env';
 
 export class MongoDbClient {
   private static instance: MongoDbClient;

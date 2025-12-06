@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from 'fastify';
 
 import { AppError, HTTP_STATUS_CODES } from '../../../common/errors';
+import { PublishRmqClient } from '../../../common/rmq/types';
 import { ROUTES } from '../../../routes';
 import { TaskService } from '../application/task.service';
 import { CreateTaskDto, TaskParamId, TaskParamStatus, UpdateTaskDto } from '../task.model';
@@ -14,13 +15,14 @@ import {
 
 export interface TaskRoutesDeps {
   taskService: TaskService;
+  rmqClient: PublishRmqClient;
 }
 
 export const taskController = async (
   fastify: FastifyInstance,
   opts: FastifyPluginOptions & TaskRoutesDeps,
 ) => {
-  const { taskService } = opts;
+  const { taskService, rmqClient } = opts;
 
   fastify.get(
     ROUTES.TASKS,
@@ -50,6 +52,13 @@ export const taskController = async (
     { schema: createTaskSchema },
     async (request: FastifyRequest<{ Body: CreateTaskDto }>, reply) => {
       const task = await taskService.createTask(request.body);
+
+      await rmqClient.publish('task.action', {
+        taskId: task.id,
+        action: 'created',
+        timestamp: new Date().toISOString(),
+      });
+
       return reply.status(HTTP_STATUS_CODES.CREATED).send(task);
     },
   );
@@ -63,6 +72,12 @@ export const taskController = async (
       if (!task) {
         throw new AppError('Task not found', HTTP_STATUS_CODES.NOT_FOUND);
       }
+
+      await rmqClient.publish('task.action', {
+        taskId: request.params.id,
+        action: 'updated',
+        timestamp: new Date().toISOString(),
+      });
 
       return reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
     },

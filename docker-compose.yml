@@ -2,12 +2,13 @@ services:
   task-app:
     build: .
     restart: always
-    env_file:
-      - .env
     environment:
       MONGO_URI: mongodb://mongodb:27017
       MONGO_DB_NAME: task_db
       RABBITMQ_URL: amqp://rabbitmq:5672
+      RABBITMQ_EXCHANGE: task.exchange
+      RABBITMQ_QUEUE: task.actions
+      RABBITMQ_ROUTING_KEY: task.action
       PORT: 4000
     depends_on:
       - mongodb
@@ -35,5 +36,5 @@ services:
       - '5672:5672'
       - '15672:15672'
     environment:
-      RABBITMQ_DEFAULT_USER: test
-      RABBITMQ_DEFAULT_PASS: test
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
