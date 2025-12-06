@@ -1,5 +1,7 @@
 import { WithId } from 'mongodb';
 
+import { Nullable } from '../../common/types';
+
 export interface TaskParamId {
   id: string;
 }
@@ -41,8 +43,10 @@ export interface CreateTaskDto {
   status?: TaskStatus | null;
 }
 
-export interface UpdateTaskDto {
-  title?: string | null;
-  description?: string | null;
-  status?: TaskStatus | null;
-}
+export type UpdateTaskBase = Partial<{
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+}>;
+
+export type UpdateTaskDto = Nullable<UpdateTaskBase>;

@@ -1,7 +1,14 @@
 import { Collection, Filter, ObjectId } from 'mongodb';
 
 import { AppError, HTTP_STATUS_CODES } from '../../../common/errors';
-import { CreateTaskDto, TaskBase, TaskDocument, TaskStatus, UpdateTaskDto } from '../task.model';
+import {
+  CreateTaskDto,
+  TaskBase,
+  TaskDocument,
+  TaskStatus,
+  UpdateTaskBase,
+  UpdateTaskDto,
+} from '../task.model';
 
 export class TaskRepository {
   constructor(private readonly collectionTasks: Collection<TaskBase>) {}
@@ -47,11 +54,25 @@ export class TaskRepository {
     };
   }
 
-  public async updateTask(updateTaskDto: UpdateTaskDto, taskId: string): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    // TODO: разобраться с типами
-    await this.collectionTasks.updateOne({ _id: new ObjectId(taskId) }, { $set: updateTaskDto });
+  public async updateTask(
+    { description, title, status }: UpdateTaskDto,
+    taskId: string,
+  ): Promise<boolean> {
+    const updateDto: UpdateTaskBase = { description };
+
+    if (title) {
+      updateDto.title = title;
+    }
+
+    if (status) {
+      updateDto.status = status;
+    }
+
+    await this.collectionTasks.updateOne(
+      { _id: new ObjectId(taskId) },
+      { $set: { ...updateDto, updatedAt: new Date() } },
+    );
+
     return true;
   }
 }
