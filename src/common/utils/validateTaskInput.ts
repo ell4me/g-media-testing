@@ -1,11 +1,11 @@
 import { GqlError, HTTP_STATUS_CODES } from '../errors';
 
 export const validateTaskInput = (title?: string | null, description?: string | null) => {
-  if (!title?.trim()) {
+  if (title && !title?.trim()) {
     throw new GqlError('Title less than 1 characters', HTTP_STATUS_CODES.BAD_REQUEST);
   }
 
-  if (title.trim().length > 100) {
+  if (title && title.trim().length > 100) {
     throw new GqlError('Title bigger than 100 characters', HTTP_STATUS_CODES.BAD_REQUEST);
   }
 

@@ -2,6 +2,8 @@ import { MongoClient, Db, Collection, Document } from 'mongodb';
 
 import { envConfig } from '../../config/env';
 
+import { TCollections } from './types';
+
 export class MongoDbClient {
   private static instance: MongoDbClient;
   private client: MongoClient | null = null;
@@ -27,7 +29,7 @@ export class MongoDbClient {
     return this.db;
   }
 
-  public getCollection<T extends Document>(name: string): Collection<T> {
+  public getCollection<T extends Document>(name: TCollections): Collection<T> {
     if (!this.db) {
       throw new Error('MongoDB is not connected');
     }

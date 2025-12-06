@@ -1,0 +1,1324 @@
+{
+	"info": {
+		"_postman_id": "99dee3d8-f392-41c2-9fb7-f093f35cceec",
+		"name": "REST API Tasks",
+		"description": "Авто-тесты для REST API Tasks",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20302177",
+		"_collection_link": "https://www.postman.com/ell4me/workspace/g-media-testing/collection/20302177-99dee3d8-f392-41c2-9fb7-f093f35cceec?action=share&source=collection_link&creator=20302177"
+	},
+	"item": [
+		{
+			"name": "Reset all data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/testing",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"testing"
+					]
+				},
+				"description": "Reset all data from db for pure testing"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return response is an array\", function () {",
+							"    pm.expect(json).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"should return empty array\", function () {",
+							"    pm.expect(json).to.have.length(0);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 200\n    \n- the response is a empty array"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task (valid data)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"const body = JSON.parse(pm.request.body.raw);",
+							"",
+							"pm.test(\"reponse should contain the correct data\", function () {",
+							"      pm.expect(json).to.include({",
+							"        title: body.title,",
+							"        dueDate: body.dueDate,",
+							"        status: \"OPEN\",",
+							"    });",
+							"",
+							"    pm.expect(json.id).to.be.a(\"string\");",
+							"});",
+							"",
+							"pm.collectionVariables.set('taskId', json.id);",
+							"pm.collectionVariables.set('taskSnapshot', JSON.stringify(json));",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Task 1\",\n    \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 201\n    \n- the response is a JSON object"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task without dueDate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return 400 when dueDate is missing\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation message about dueDate being required\", function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include(\"body must have required property 'dueDate'\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Task without due date\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with invalid title (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"    ",
+							"",
+							"pm.test(\"should return error validation message that title is required\", function () {",
+							"    const json = pm.response.json();",
+							"    const body = JSON.parse(pm.request.body.raw);",
+							"",
+							"    pm.expect(body.title).to.eql(\"\");",
+							"    pm.expect(json.message).to.include('body/title must NOT have fewer than 1 characters');",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"\",\n    \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with invalid data(dueDate)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"",
+							"pm.test(\"should return error validation message that dueDate is not valid\", function () {",
+							"    const json = pm.response.json();",
+							"    const body = JSON.parse(pm.request.body.raw);",
+							"",
+							"    pm.expect(body.dueDate).to.eql(\"\");",
+							"    pm.expect(json.message).to.include('must match format \"date-time\"');",
+							"     pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"task 1\",\n    \"dueDate\": \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with too long title (>100 chars)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation error for long title\", function () {",
+							"    const body = JSON.parse(pm.request.body.raw);",
+							"    const json = pm.response.json();",
+							"",
+							"    pm.expect(body.title.length).to.be.above(100);",
+							"",
+							"    pm.expect(json.message).to.include(\"body/title must NOT have more than 100 characters\");",
+							"    pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"task 1 task 1task 1task 1task 1task 1task 1task 1task 1task 1task1task1task1task1task1task1task1task1task\",\n    \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with status=OPEN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return response is an array\", function () {",
+							"    pm.expect(json).to.be.an('array');",
+							"});",
+							"",
+							"const snapshotRaw = pm.collectionVariables.get('taskSnapshot');",
+							"pm.test(\"created task snapshot exists\", function () {",
+							"    pm.expect(snapshotRaw, \"taskSnapshot missing in env\").to.exist;",
+							"});",
+							"",
+							"const expected = JSON.parse(snapshotRaw);",
+							"const foundItem = json[0];",
+							"",
+							"pm.test(\"array should contain created task\", function () {",
+							"    pm.expect(foundItem, \"created task not found in GET /tasks\").to.exist;",
+							"    pm.expect(foundItem).to.deep.include(expected);",
+							"});",
+							"",
+							"pm.test(\"array should has length is equal 1\", function () {",
+							"    pm.expect(json).to.have.length(1);",
+							"});",
+							"",
+							"pm.test(\"`args` should contain the correct query param\", function () {",
+							"    const status = pm.request.url.query.find(q => q.key === \"status\")?.value;",
+							"    pm.expect(status).to.eql('OPEN');",
+							"    pm.expect(status).to.eql(foundItem.status);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks?status=OPEN",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "OPEN"
+						}
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 200\n    \n- the response is an array"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with status=CLOSED (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return response is an array\", function () {",
+							"    pm.expect(json).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"should return empty array\", function () {",
+							"    pm.expect(json).to.have.length(0);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks?status=CLOSED",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "CLOSED"
+						}
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 200\n    \n- the response is an empty array"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with invalid status (unknown enum)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return message about unknown status\", function () {",
+							"    pm.expect(json.message).to.be.includes('must be equal to one of the allowed values');",
+							"    pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks?status=34",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "34"
+						}
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400\n    \n- the response is a JSON object"
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with valid data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"pm.test(\"response body should be empty\", function () {",
+							"    pm.expect(pm.response.text()).to.eql(\"\");",
+							"});",
+							"",
+							"",
+							"const body = pm.request.body.raw;",
+							"",
+							"pm.collectionVariables.set('taskUpdatedSnapshot', body);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"description\",\n    \"status\": \"CLOSED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{taskId}}"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 204"
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with not existed id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"    pm.expect(json.message).to.eql('Task not found');",
+							"    pm.expect(json.statusCode).to.eql('404');",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"description\",\n    \"status\": \"CLOSED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/69342d8090d1d87ce1a537f7",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"69342d8090d1d87ce1a537f7"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 404"
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with invalid status (unknown enum)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"    pm.expect(json.message).to.be.includes('must be equal to one of the allowed values');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"description\",\n    \"status\": \"\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{taskId}}"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with too long description (>500 chars)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"const body = JSON.parse(pm.request.body.raw);",
+							"",
+							"pm.test(\"should return status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"    pm.expect(json.message).to.be.includes('must NOT have more than 500 characters');",
+							"    pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});",
+							"",
+							"",
+							"pm.test(\"should confirm that 'description' length is over 500 chars\", function () {",
+							"    pm.expect(body.description).to.be.length.above(500);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiontiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription\",\n    \"status\": \"CLOSED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{taskId}}"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Get task by id after update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"const snapshotTaskRaw = pm.collectionVariables.get('taskSnapshot');",
+							"const snapshotTaskUpdatedRaw = pm.collectionVariables.get('taskUpdatedSnapshot');",
+							"const expectedTask = JSON.parse(snapshotTaskRaw);",
+							"const expectedUpdatedTask = JSON.parse(snapshotTaskUpdatedRaw);",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"taskUpdatedSnapshot exists\", function () {",
+							"    pm.expect(snapshotTaskUpdatedRaw, \"taskUpdatedSnapshot missing in env\").to.exist;",
+							"});",
+							"",
+							"pm.test(\"taskSnapshot exists\", function () {",
+							"    pm.expect(snapshotTaskRaw, \"taskSnapshot missing in env\").to.exist;",
+							"});",
+							"",
+							"pm.test(\"should return valid task\", function () {",
+							"    pm.expect(json.id).to.eql(expectedTask.id);",
+							"    pm.expect(json).to.deep.include({ ...expectedTask, ...expectedUpdatedTask });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/{{taskId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{taskId}}"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 200\n    \n- the response is a JSON object"
+			},
+			"response": []
+		},
+		{
+			"name": "Get task with not existed id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"    pm.expect(json.message).to.eql('Task not found');",
+							"    pm.expect(json.statusCode).to.eql('404');",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/69342d8090d1d87ce1a537f7",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"69342d8090d1d87ce1a537f7"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 404"
+			},
+			"response": []
+		},
+		{
+			"name": "Get task with invalid id format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"    pm.expect(json.message).to.be.equal('Invalid task id');",
+							"    pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/fewfweffdsfds",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"fewfweffdsfds"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Get task with not valid required id length",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"should return validation message\", function () {",
+							"     pm.expect(json.message).to.be.includes('must NOT have fewer than 10 characters');",
+							"    pm.expect(json.statusCode).to.eql(400);",
+							"    pm.expect(json).to.have.property('timestamp');",
+							"    pm.expect(json).to.have.property('path');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"1"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 400"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks without status (after update)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return array with one task\", function () {",
+							"    pm.expect(json).to.be.an('array');",
+							"    pm.expect(json).to.have.length(1);",
+							"});",
+							"",
+							"pm.test(\"should return updated task\", function () {",
+							"    const updatedSnapshotRaw = pm.collectionVariables.get('taskUpdatedSnapshot');",
+							"    const createdSnapshotRaw = pm.collectionVariables.get('taskSnapshot');",
+							"",
+							"    const created = JSON.parse(createdSnapshotRaw);",
+							"    const updated = JSON.parse(updatedSnapshotRaw);",
+							"",
+							"    const expected = { ...created, ...updated };",
+							"",
+							"    pm.expect(json[0]).to.deep.include(expected);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 200\n    \n- the response is an array"
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with XSS in title",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"should sanitize title from script tags\", function () {",
+							"    pm.expect(json.title).to.not.include(\"<script>\");",
+							"    pm.expect(json.title).to.not.include(\"</script>\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"<script>alert('xss')</script>title\",\n  \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/tasks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "The tests in this request validate that:\n\n- the response code is 201\n    \n- the response is a JSON object"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:4000"
+		},
+		{
+			"key": "apiPrefix",
+			"value": "api"
+		},
+		{
+			"key": "taskSnapshot",
+			"value": ""
+		},
+		{
+			"key": "taskId",
+			"value": ""
+		},
+		{
+			"key": "taskUpdatedSnapshot",
+			"value": ""
+		}
+	]
+}

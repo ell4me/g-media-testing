@@ -6,7 +6,7 @@ import { TaskStatus } from '../task.model';
 const taskStatusEnum = Object.values(TaskStatus);
 
 const MAX_LENGTH_TITLE = 100;
-const MAX_LENGTH_DESC = 100;
+const MAX_LENGTH_DESC = 500;
 
 const taskResponseItemSchema = {
   type: 'object',

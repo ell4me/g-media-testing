@@ -102,7 +102,12 @@ export const buildApp = async (): Promise<FastifyInstance> => {
         }),
     }),
   });
+
   fastify.get('/health', () => ({ status: 'ok' }));
+  fastify.delete('/testing', async (_request, reply) => {
+    await mongoClient.getCollection('task').deleteMany();
+    return reply.status(HTTP_STATUS_CODES.NO_CONTENT).send();
+  });
 
   return fastify;
 };

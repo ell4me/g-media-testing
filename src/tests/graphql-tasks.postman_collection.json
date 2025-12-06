@@ -1,0 +1,1023 @@
+{
+	"info": {
+		"_postman_id": "36b08f63-6413-4505-bb27-438997a184d1",
+		"name": "GraphQL Tasks",
+		"description": "Авто-тесты для GraphQL API Tasks",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20302177",
+		"_collection_link": "https://www.postman.com/ell4me/workspace/g-media-testing/collection/20302177-36b08f63-6413-4505-bb27-438997a184d1?action=share&source=collection_link&creator=20302177"
+	},
+	"item": [
+		{
+			"name": "Reset all data (REST)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/testing",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"testing"
+					]
+				},
+				"description": "Reset all data from db for pure testing (REST endpoint)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"getTasks should be an empty array\", function () {",
+							"    pm.expect(json.data).to.be.an('object');",
+							"    pm.expect(json.data.getTasks).to.be.an('array');",
+							"    pm.expect(json.data.getTasks).to.have.length(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTasks { getTasks { id title description status dueDate } }\",\n  \"variables\": {}\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Проверка, что getTasks возвращает пустой массив, когда задач нет."
+			},
+			"response": []
+		},
+		{
+			"name": "Create task (valid data)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"createTask should contain correct data\", function () {",
+							"    const body = JSON.parse(pm.request.body.raw);",
+							"    const input = body.variables.input;",
+							"    const task = json.data.createTask;",
+							"",
+							"    pm.expect(task).to.be.an('object');",
+							"    pm.expect(task).to.include({",
+							"        title: input.title,",
+							"        dueDate: input.dueDate,",
+							"        status: 'OPEN'",
+							"    });",
+							"    pm.expect(task.id).to.be.a('string');",
+							"});",
+							"",
+							"const task = pm.response.json().data.createTask;",
+							"pm.collectionVariables.set('taskId', task.id);",
+							"pm.collectionVariables.set('taskSnapshot', JSON.stringify(task));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation CreateTask($input: CreateTaskInput!) { createTask(createTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"title\": \"Task 1\",\n      \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Создание задачи с валидными данными через GraphQL mutation createTask."
+			},
+			"response": []
+		},
+		{
+			"name": "Create task without dueDate (GraphQL validation)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return GraphQL validation errors\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    pm.expect(json.errors.length).to.be.above(0);",
+							"});",
+							"",
+							"pm.test(\"error message should mention 'dueDate'\", function () {",
+							"    const msg = json.errors[0].message || '';",
+							"    pm.expect(msg).to.include('dueDate');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation CreateTask($input: CreateTaskInput!) { createTask(createTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"title\": \"Task without due date\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Попытка создать задачу без обязательного поля dueDate. Ожидаем ошибку валидации GraphQL (required field)."
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with invalid title (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200 (GraphQL error in body)\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return validation error from validateTaskInput\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    pm.expect(json.errors.length).to.be.above(0);",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.include('title');",
+							"    pm.expect(err.extensions).to.have.property('code');",
+							"    pm.expect(err.extensions.code).to.eql('BAD_USER_INPUT');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation CreateTask($input: CreateTaskInput!) { createTask(createTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"title\": \"\",\n      \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Пустой title. validateTaskInput должен выбросить GqlError с BAD_REQUEST."
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with too long title (>100 chars)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return validation error for long title\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message.toLowerCase()).to.include('title');",
+							"    pm.expect(err.message).to.include('100');",
+							"    pm.expect(err.extensions.code).to.eql('BAD_REQUEST');",
+							"});",
+							"",
+							"pm.test(\"data.createTask should be null\", function () {",
+							"    pm.expect(json.data.createTask).to.eql(null);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation CreateTask($input: CreateTaskInput!) { createTask(createTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"title\": \"task 1 task 1task 1task 1task 1task 1task 1task 1task 1task 1task1task1task1task1task1task1task1task1task\",\n      \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Title > 100 символов. Ожидаем ошибку валидации из validateTaskInput."
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with status=OPEN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"should return array with one task\", function () {",
+							"    pm.expect(json.data.getTasks).to.be.an('array');",
+							"    pm.expect(json.data.getTasks).to.have.length(1);",
+							"});",
+							"",
+							"pm.test(\"array should contain created task snapshot\", function () {",
+							"    const snapshotRaw = pm.collectionVariables.get('taskSnapshot');",
+							"    pm.expect(snapshotRaw, 'taskSnapshot missing in env').to.exist;",
+							"    const expected = JSON.parse(snapshotRaw);",
+							"    const foundItem = json.data.getTasks[0];",
+							"    pm.expect(foundItem).to.deep.include(expected);",
+							"});",
+							"",
+							"pm.test(\"request variables should contain correct status\", function () {",
+							"    const body = JSON.parse(pm.request.body.raw);",
+							"    pm.expect(body.variables.status).to.eql('OPEN');",
+							"    const foundItem = json.data.getTasks[0];",
+							"    pm.expect(foundItem.status).to.eql('OPEN');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTasks($status: TaskStatus) { getTasks(status: $status) { id title description status dueDate } }\",\n  \"variables\": {\n    \"status\": \"OPEN\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Получение задач со статусом OPEN. Ожидаем одну созданную задачу."
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with status=CLOSED (empty)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return response as empty array\", function () {",
+							"    pm.expect(json.data.getTasks).to.be.an('array');",
+							"    pm.expect(json.data.getTasks).to.have.length(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTasks($status: TaskStatus) { getTasks(status: $status) { id title description status dueDate } }\",\n  \"variables\": {\n    \"status\": \"CLOSED\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Получение задач со статусом CLOSED до обновления — ожидаем пустой массив."
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks with invalid status (unknown enum)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return GraphQL enum validation error\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.include('TaskStatus');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTasks($status: TaskStatus) { getTasks(status: $status) { id title description status dueDate } }\",\n  \"variables\": {\n    \"status\": \"UNKNOWN\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Некорректное значение enum TaskStatus в переменной. Ожидаем ошибку валидации GraphQL."
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with valid data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"const task = json.data.updateTask;",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"should return updated task\", function () {",
+							"    pm.expect(task).to.be.an('object');",
+							"    pm.expect(task.status).to.eql('CLOSED');",
+							"    pm.expect(task.description).to.eql('description');",
+							"});",
+							"",
+							"pm.collectionVariables.set('taskUpdatedSnapshot', JSON.stringify({",
+							"  description: task.description,",
+							"  status: task.status",
+							"}));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation UpdateTask($input: UpdateTaskInput!) { updateTask(updateTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"id\": \"{{taskId}}\",\n      \"description\": \"description\",\n      \"status\": \"CLOSED\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Успешное обновление задачи (description + status=CLOSED)."
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with not existed id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return NOT_FOUND error\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.eql('Task not found');",
+							"    pm.expect(err.extensions.code).to.eql('NOT_FOUND');",
+							"});",
+							"",
+							"pm.test(\"data.updateTask should be null\", function () {",
+							"    pm.expect(json.data.updateTask).to.eql(null);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation UpdateTask($input: UpdateTaskInput!) { updateTask(updateTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"id\": \"69342d8090d1d87ce1a537f7\",\n      \"description\": \"description\",\n      \"status\": \"CLOSED\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Обновление несуществующей задачи. Ожидаем GqlError NOT_FOUND."
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with invalid status (unknown enum)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return enum validation error\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.include('TaskStatus');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation UpdateTask($input: UpdateTaskInput!) { updateTask(updateTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"id\": \"{{taskId}}\",\n      \"status\": \"UNKNOWN\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Передаём несуществующее значение enum TaskStatus. Ожидаем ошибку валидации GraphQL."
+			},
+			"response": []
+		},
+		{
+			"name": "Update task with too long description (>500 chars)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return validation error from validateTaskInput\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message.toLowerCase()).to.include('description');",
+							"    pm.expect(err.message).to.include('500');",
+							"    pm.expect(err.extensions.code).to.eql('BAD_REQUEST');",
+							"});",
+							"",
+							"pm.test(\"data.updateTask should be null\", function () {",
+							"    pm.expect(json.data.updateTask).to.eql(null);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation UpdateTask($input: UpdateTaskInput!) { updateTask(updateTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"id\": \"{{taskId}}\",\n      \"description\": \"descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiontiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription\",\n      \"status\": \"CLOSED\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Слишком длинное описание (>500 символов). validateTaskInput должен вернуть BAD_REQUEST."
+			},
+			"response": []
+		},
+		{
+			"name": "Get task by id after update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"const task = json.data.getTask;",
+							"const snapshotTaskRaw = pm.collectionVariables.get('taskSnapshot');",
+							"const snapshotTaskUpdatedRaw = pm.collectionVariables.get('taskUpdatedSnapshot');",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"taskSnapshot exists\", function () {",
+							"    pm.expect(snapshotTaskRaw, 'taskSnapshot missing in env').to.exist;",
+							"});",
+							"",
+							"pm.test(\"taskUpdatedSnapshot exists\", function () {",
+							"    pm.expect(snapshotTaskUpdatedRaw, 'taskUpdatedSnapshot missing in env').to.exist;",
+							"});",
+							"",
+							"const expectedTask = JSON.parse(snapshotTaskRaw);",
+							"const expectedUpdatedTask = JSON.parse(snapshotTaskUpdatedRaw);",
+							"",
+							"pm.test(\"should return valid merged task\", function () {",
+							"    pm.expect(task.id).to.eql(expectedTask.id);",
+							"    pm.expect(task).to.deep.include({ ...expectedTask, ...expectedUpdatedTask });",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTask($id: ID!) { getTask(id: $id) { id title description status dueDate } }\",\n  \"variables\": {\n    \"id\": \"{{taskId}}\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Проверка, что getTask возвращает обновлённую задачу (merge старых и новых данных)."
+			},
+			"response": []
+		},
+		{
+			"name": "Get task with not existed id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return NOT_FOUND error\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.eql('Task not found');",
+							"    pm.expect(err.extensions.code).to.eql('NOT_FOUND');",
+							"});",
+							"",
+							"pm.test(\"data.getTask should be null\", function () {",
+							"    pm.expect(json.data.getTask).to.eql(null);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTask($id: ID!) { getTask(id: $id) { id title description status dueDate } }\",\n  \"variables\": {\n    \"id\": \"69342d8090d1d87ce1a537f7\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "getTask по несуществующему id. Ожидаем GqlError NOT_FOUND."
+			},
+			"response": []
+		},
+		{
+			"name": "Get task with invalid id format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return error about invalid task id\", function () {",
+							"    pm.expect(json.errors).to.be.an('array');",
+							"    const err = json.errors[0];",
+							"    pm.expect(err.message).to.eql('Invalid task id');",
+							"});",
+							"",
+							"pm.test(\"data.getTask should be null\", function () {",
+							"    pm.expect(json.data.getTask).to.eql(null);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTask($id: ID!) { getTask(id: $id) { id title description status dueDate } }\",\n  \"variables\": {\n    \"id\": \"fewfweffdsfds\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Невалидный формат ObjectId. В репозитории кидается AppError('Invalid task id')."
+			},
+			"response": []
+		},
+		{
+			"name": "Get all tasks without status (after update)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should return array with one task\", function () {",
+							"    pm.expect(json.data.getTasks).to.be.an('array');",
+							"    pm.expect(json.data.getTasks).to.have.length(1);",
+							"});",
+							"",
+							"pm.test(\"should return updated task\", function () {",
+							"    const updatedSnapshotRaw = pm.collectionVariables.get('taskUpdatedSnapshot');",
+							"    const createdSnapshotRaw = pm.collectionVariables.get('taskSnapshot');",
+							"",
+							"    const created = JSON.parse(createdSnapshotRaw);",
+							"    const updated = JSON.parse(updatedSnapshotRaw);",
+							"",
+							"    const expected = { ...created, ...updated };",
+							"",
+							"    pm.expect(json.data.getTasks[0]).to.deep.include(expected);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"query GetTasks { getTasks { id title description status dueDate } }\",\n  \"variables\": {}\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "getTasks без фильтра по статусу после апдейта — ожидаем одну обновлённую задачу."
+			},
+			"response": []
+		},
+		{
+			"name": "Create task with XSS in title (sanitizing)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();",
+							"const task = json.data && json.data.createTask;",
+							"",
+							"pm.test(\"should return status code 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"should not have errors\", function () {",
+							"    pm.expect(json.errors).to.be.undefined;",
+							"});",
+							"",
+							"pm.test(\"should sanitize title from script tags\", function () {",
+							"    pm.expect(task.title).to.not.include('<script>');",
+							"    pm.expect(task.title).to.not.include('</script>');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"query\": \"mutation CreateTask($input: CreateTaskInput!) { createTask(createTaskInput: $input) { id title description status dueDate } }\",\n  \"variables\": {\n    \"input\": {\n      \"title\": \"<script>alert('xss')</script>title\",\n      \"dueDate\": \"2025-12-06T12:07:29.385Z\"\n    }\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/graphql",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"graphql"
+					]
+				},
+				"description": "Проверка санитайзинга title (sanitizeObjectDeep в резолвере)."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:4000"
+		},
+		{
+			"key": "taskSnapshot",
+			"value": ""
+		},
+		{
+			"key": "taskId",
+			"value": ""
+		},
+		{
+			"key": "taskUpdatedSnapshot",
+			"value": ""
+		}
+	]
+}
