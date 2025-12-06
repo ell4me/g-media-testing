@@ -19,7 +19,10 @@ export class TaskConsumer {
 
     try {
       const { taskId, timestamp, action }: MessageTask = JSON.parse(raw);
-      this.logger.info(`Task ${taskId} was ${action} at ${timestamp}`);
+      this.logger.info(
+        { exchange: message.fields.exchange, routingKey: message.fields.routingKey },
+        `[RMQ] Task ${taskId} was ${action} at ${timestamp}`,
+      );
     } catch (error) {
       this.logger.error({ error, raw }, 'Failed to parse rmq message');
     }

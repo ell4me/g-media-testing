@@ -25,6 +25,7 @@ export interface AppDeps {
 export const buildApp = async (): Promise<FastifyInstance> => {
   const fastify = Fastify({
     logger: true,
+    ignoreTrailingSlash: true,
   });
 
   await fastify.register(cors, {
@@ -75,7 +76,7 @@ export const buildApp = async (): Promise<FastifyInstance> => {
   };
 
   const taskConsumer = new TaskConsumer(deps.rmqClient, fastify.log);
-  await taskConsumer.start();
+  taskConsumer.start().catch((err) => fastify.log.error(err, 'Task consumer failed to start'));
 
   await fastify.register(taskController, {
     prefix: '/api',

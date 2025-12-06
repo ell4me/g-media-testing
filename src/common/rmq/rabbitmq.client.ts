@@ -3,7 +3,11 @@ import { FastifyBaseLogger } from 'fastify';
 
 import { envConfig } from '../../config/env';
 
-import { RMQ_INIT_ERROR_MESSAGE } from './constants';
+import {
+  DEFAULT_RETRY_ATTEMPTS,
+  DEFAULT_RETRY_DELAY_MS,
+  RMQ_INIT_ERROR_MESSAGE,
+} from './constants';
 import { MessageDto, RoutingKeys } from './types';
 
 export class RabbitMqClient {
@@ -20,29 +24,60 @@ export class RabbitMqClient {
     return RabbitMqClient.instance;
   }
 
+  private async wait(delay: number): Promise<void> {
+    return new Promise((res) => setTimeout(res, delay));
+  }
+
   public async connect(): Promise<Channel> {
     if (this.channel) {
       return this.channel;
     }
 
-    this.connection = await amqp.connect(envConfig.rabbitMqUrl);
-    this.channel = await this.connection.createChannel();
+    let attempts = 0;
 
-    await this.channel.assertExchange(envConfig.rabbitMqExchange, 'direct', {
-      durable: true,
-    });
+    while (attempts < DEFAULT_RETRY_ATTEMPTS) {
+      attempts += 1;
+      try {
+        this.logger.info({ url: envConfig.rabbitMqUrl, attempt: attempts }, 'Connecting to RabbitMQ...');
 
-    await this.channel.assertQueue(envConfig.rabbitMqQueue, {
-      durable: true,
-    });
+        this.connection = await amqp.connect(envConfig.rabbitMqUrl);
+        this.channel = await this.connection.createChannel();
 
-    await this.channel.bindQueue(
-      envConfig.rabbitMqQueue,
-      envConfig.rabbitMqExchange,
-      envConfig.rabbitMqRoutingKey,
-    );
+        await this.channel.assertExchange(envConfig.rabbitMqExchange, 'direct', {
+          durable: true,
+        });
 
-    return this.channel;
+        await this.channel.assertQueue(envConfig.rabbitMqQueue, {
+          durable: true,
+        });
+
+        await this.channel.bindQueue(
+          envConfig.rabbitMqQueue,
+          envConfig.rabbitMqExchange,
+          envConfig.rabbitMqRoutingKey,
+        );
+
+        this.logger.info('RMQ connected successfully');
+        return this.channel;
+      } catch (err) {
+        this.logger.error({ err, attempt: attempts }, 'Failed to connect to RMQ');
+
+        if (attempts >= DEFAULT_RETRY_ATTEMPTS) {
+          this.logger.error(
+            { retries: DEFAULT_RETRY_ATTEMPTS },
+            'Max retries connection reached to RMQ',
+          );
+          throw err;
+        }
+
+        this.logger.info(
+          `Retrying RMQ connection after ${DEFAULT_RETRY_DELAY_MS}ms...`,
+        );
+        await this.wait(DEFAULT_RETRY_DELAY_MS);
+      }
+    }
+
+    throw new Error('RMQ connection failed unexpectedly');
   }
 
   public async publish(routingKey: RoutingKeys, message: MessageDto): Promise<void> {
